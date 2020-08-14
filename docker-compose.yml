@@ -1,0 +1,11 @@
+version: "3"
+services:
+  database:
+    image: "postgres:12.3-alpine"
+    env_file:
+      - database.env
+    volumes:
+      - database-data:/var/lib/postgresql/data/
+
+volumes:
+  database-data:

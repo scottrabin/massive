@@ -1,3 +1,15 @@
+## Quickstart
+
+```bash
+$ docker-compose up
+```
+
+Logging in to the `database` container:
+
+```bash
+$ docker-compose run database bash
+```
+
 ## Schema
 
 ```gql
