@@ -10,7 +10,7 @@ Logging in to the `database` container:
 $ docker-compose run database bash
 ```
 
-## Schema
+## GraphQL Schema
 
 ```gql
 type Recipe {
@@ -94,4 +94,28 @@ mutation UpdateIngredient {
 mutation DeleteIngredient {
     // Not implemented
 }
+```
+
+## Database Schema
+
+```
+ingredients
+===========
+id: UUID NOT NULL
+name: string NOT NULL
+density: float NOT NULL
+grams_per_unit: float
+
+recipes
+=======
+id: UUID NOT NULL
+name: string NOT NULL
+instructions: text NOT NULL
+
+ingredients_in_recipe
+=====================
+recipe_id: UUID NOT NULL FKEY (recipes.id)
+ingredient_id: UUID NOT NULL FKEY (ingredients.id)
+quantity: float NOT NULL
+unit: enum ("gram", "milliliter", "quantity")
 ```
