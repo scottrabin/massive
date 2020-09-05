@@ -4,30 +4,10 @@ use juniper::{
     RootNode,
 };
 
-use super::context::Context;
-use super::mutation::Mutation;
-use super::query::Query;
-
-type Schema = RootNode<'static, Query, Mutation>;
-
-/// Parses a request into the relevant GraphQL parts
-async fn parse_request(req: Request<Body>) -> Result<GraphQLRequest, Box<dyn std::error::Error>> {
-    match req.method() {
-        &Method::POST => {
-            let chunk = hyper::body::to_bytes(req.into_body()).await?;
-
-            let input = String::from_utf8(chunk.into_iter().collect())?;
-
-            Ok(serde_json::from_str::<GraphQLRequest>(&input)?)
-        }
-        _ => unimplemented!("{:?}", req),
-    }
-}
+use super::{context::Context, error::GQLError, mutation::Mutation, query::Query};
 
 /// Converts a GraphQL result into an HTTP response containing the data
-fn into_response(
-    gql_result: GraphQLResponse,
-) -> Result<Response<Body>, Box<dyn std::error::Error>> {
+fn into_response(gql_result: GraphQLResponse) -> Result<Response<Body>, super::GQLError> {
     Response::builder()
         .status(StatusCode::OK)
         .header(header::CONTENT_TYPE, "application/json")
@@ -37,15 +17,28 @@ fn into_response(
 
 /// Converts a request sent to the GraphQL endpoint into the resulting data,
 /// using the root node and context given as the basis.
-pub async fn execute_graphql(
+pub async fn execute_graphql<'a, 'b>(
     req: Request<Body>,
-    context: &Context,
-) -> Result<Response<Body>, hyper::Error> {
-    let root_node: Schema = Schema::new(Query, Mutation);
+    context: Context,
+) -> Result<Response<Body>, GQLError> {
+    let root_node: RootNode<'b, Query, Mutation> = RootNode::new(Query, Mutation);
 
-    let batch_request = parse_request(req).await.unwrap();
+    let graphql_request = match req.method() {
+        &Method::POST => parse_post_request(req).await,
+        &Method::GET => unimplemented!("GET /graphql is not yet implemented"),
+        method => Err(GQLError::UnrecognizedMethod(method.clone())),
+    }?;
 
-    let graphql_result = batch_request.execute(&root_node, context);
+    let graphql_result = graphql_request.execute(&root_node, &context);
 
-    into_response(graphql_result).map_err(|_| panic!())
+    into_response(graphql_result)
+}
+
+/// Parses a POST request into a GraphQLRequest
+async fn parse_post_request(req: Request<Body>) -> Result<GraphQLRequest, GQLError> {
+    let chunk = hyper::body::to_bytes(req.into_body()).await?;
+
+    let input = String::from_utf8(chunk.into_iter().collect())?;
+
+    Ok(serde_json::from_str::<GraphQLRequest>(&input)?)
 }

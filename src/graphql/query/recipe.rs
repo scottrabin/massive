@@ -1,19 +1,29 @@
 use juniper::object;
-use std::convert::TryInto;
+
+use crate::model;
 
 #[derive(Clone, Debug)]
 pub struct Recipe {
-    pub id: u32,
+    pub id: uuid::Uuid,
     pub name: String,
 }
 
 #[object(Context=crate::graphql::context::Context)]
 impl Recipe {
-    fn id(&self) -> i32 {
-        self.id.try_into().unwrap()
+    fn id(&self) -> String {
+        self.id.to_string()
     }
 
     fn name(&self) -> &str {
         &self.name
+    }
+}
+
+impl From<model::Recipe> for Recipe {
+    fn from(recipe: model::Recipe) -> Self {
+        Recipe {
+            id: recipe.id,
+            name: recipe.name,
+        }
     }
 }

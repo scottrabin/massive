@@ -2,10 +2,17 @@ version: "3"
 services:
   database:
     image: "postgres:12.3-alpine"
+    ports:
+      - "5432:5432"
     env_file:
       - database.env
     volumes:
       - database-data:/var/lib/postgresql/data/
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
 
 volumes:
   database-data:
