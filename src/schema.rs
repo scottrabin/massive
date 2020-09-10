@@ -8,6 +8,13 @@ table! {
 }
 
 table! {
+    recipe_ingredient_assoc (recipe_id, ingredient_id) {
+        recipe_id -> Uuid,
+        ingredient_id -> Uuid,
+    }
+}
+
+table! {
     recipes (id) {
         id -> Uuid,
         name -> Varchar,
@@ -15,7 +22,11 @@ table! {
     }
 }
 
+joinable!(recipe_ingredient_assoc -> ingredients (ingredient_id));
+joinable!(recipe_ingredient_assoc -> recipes (recipe_id));
+
 allow_tables_to_appear_in_same_query!(
     ingredients,
+    recipe_ingredient_assoc,
     recipes,
 );

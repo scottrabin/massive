@@ -3,6 +3,7 @@ use crate::model;
 use diesel::prelude::*;
 use juniper::FieldResult;
 
+mod ingredient;
 mod recipe;
 
 pub struct Query;
