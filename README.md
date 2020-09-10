@@ -17,7 +17,7 @@ type Recipe {
     id: ID!
     name: String!
     ingredients: IngredientConnection!
-    steps: [String!]!
+    instructions: String!
 }
 
 type IngredientConnection {
